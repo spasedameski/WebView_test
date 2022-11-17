@@ -1,5 +1,3 @@
-var socket = io();
-
 var userlist = document.getElementById("active_users_list");
 var roomlist = document.getElementById("active_rooms_list");
 var message = document.getElementById("messageInput");
@@ -7,16 +5,47 @@ var sendMessageBtn = document.getElementById("send_message_btn");
 var roomInput = document.getElementById("roomInput");
 var createRoomBtn = document.getElementById("room_add_icon_holder");
 var chatDisplay = document.getElementById("chat");
+var loginBtn = document.getElementById("login_btn");
+var logBTN = document.getElementById("log_btn");
 
 var currentRoom = "global";
-var myUsername = "";
+var myUsername = prompt("Enter name: ");
+var myPassword = prompt("Enter pw: ");
 
-// Prompt for username on connecting to server
-socket.on("connect", function () {
-  myUsername = prompt("Enter name: ");
-  socket.emit("createUser", myUsername);
+var socket = io("ws://localhost:5000", {
+  autoConnect: false,
+  auth: {
+    appIntegrity: "randomstring",
+    credentials: { username: myUsername, password: myPassword },
+  },
 });
 
+socket.on("connect_error", (err) => {
+  console.log(err instanceof Error); // true
+  console.log(err.message); // not authorized
+  //console.log(err.data); // { content: "Please retry later" }
+});
+// Prompt for username on connecting to server
+socket.on("connect", function () {
+  socket.emit("createUser", myUsername);
+  socket.emit("log");
+});
+
+socket.on("new_user", (ev) => {
+  console.log(ev);
+});
+
+loginBtn.addEventListener("click", function () {
+  socket.connect();
+});
+
+logBTN.addEventListener("click", function () {
+  // socket.disconnect();
+  Android.showToast(myUsername)
+});
+socket.on("error", function (text) {
+  console.log(text);
+});
 // Send message on button click
 sendMessageBtn.addEventListener("click", function () {
   socket.emit("sendMessage", message.value);
@@ -47,7 +76,7 @@ socket.on("updateChat", function (username, data) {
   } else {
     console.log("Displaying user message");
     chatDisplay.innerHTML += `<div class="message_holder ${
-      username === myUsername ? "me" : ""
+        username === myUsername ? "me" : ""
     }">
                                 <div class="pic"></div>
                                 <div class="message_box">
