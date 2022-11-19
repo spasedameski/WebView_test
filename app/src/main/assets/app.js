@@ -41,7 +41,9 @@ loginBtn.addEventListener("click", function () {
 
 logBTN.addEventListener("click", function () {
   // socket.disconnect();
-  Android.showToast(myUsername)
+  // Android.addd("ime","godini 1111111111111111","tabelata")
+let data2 = Android.viewData("tabelata")
+chatDisplay.innerHTML += `<div class="announcement"><span>${data2}</span></div>`;
 });
 socket.on("error", function (text) {
   console.log(text);
